@@ -1,0 +1,256 @@
+//1
+
+select distinct(s.sname) from sailors s,boats b,reserves r where s.sid=r.sid and b.color='red';
++--------+
+| sname  |
++--------+
+| Dustin |
+| Lubber |
+| Andy   |
++--------+
+3 rows in set (0.07 sec)
+
+//2
+
+mysql> select distinct(s.sname) from sailors s,boats b,reserves r where s.sid=r.sid
+    -> having count(*)>0;
++--------+
+| sname  |
++--------+
+| Dustin |
++--------+
+1 row in set (0.10 sec)
+
+3//
+
+mysql> SELECT distinct s.rating+1 as Inc_rating  from
+    -> Sailors S, Reserves R1, Reserves R2
+    -> WHERE S.sid = R1.sid AND S.sid = R2.sid
+    -> AND R1.day = R2.day AND R1.bid <> R2.bid;
++------------+
+| Inc_rating |
++------------+
+|          8 |
++------------+
+1 row in set (0.03 sec)
+
+//4
+
+mysql> select age from sailors where sname like 'B%b';
+Empty set (0.00 sec)
+
+
+//5
+
+mysql>  SELECT distinct S1.sname
+    ->     FROM Sailors S1, Reserves R1, Boats B1
+    ->      WHERE S1.sid=R1.sid
+    ->       AND R1.bid=B1.bid
+    ->       AND ( B1.color='red'
+    ->      OR B1.color='green') ;
++--------+
+| sname  |
++--------+
+| Dustin |
+| Lubber |
+| Andy   |
++--------+
+3 rows in set (0.03 sec)
+
+
+
+//6
+
+mysql> SELECT distinct S1.sid
+    ->          FROM Sailors S1, Reserves R1, Boats B1
+    ->           WHERE S1.sid=R1.sid
+    ->            AND R1.bid=B1.bid
+    ->            AND ( B1.color='red'
+    ->           AND B1.color<>'green') ;
++-----+
+| sid |
++-----+
+|  22 |
+|  32 |
++-----+
+2 rows in set (0.02 sec)
+
+ 
+//7
+
+mysql> select * from sailors s
+    -> where s.rating in(select max(rating) from sailors);
++-----+-------+--------+------+
+| sid | sname | rating | age  |
++-----+-------+--------+------+
+|  58 | Rusty |     10 |   35 |
++-----+-------+--------+------+
+1 row in set (0.14 sec)
+
+//8
+
+mysql> select s.sname from sailors s
+    -> where s.age in(select max(age) from sailors);
++--------+
+| sname  |
++--------+
+| Lubber |
++--------+
+1 row in set (0.00 sec)
+
+//9
+
+mysql> select count(distinct(s.sname)) from sailors s;
++--------------------------+
+| count(distinct(s.sname)) |
++--------------------------+
+|                        5 |
++--------------------------+
+1 row in set (0.22 sec)
+
+//10
+mysql> select count(*) from sailors s
+    -> where age>18
+    -> group by rating;
++----------+
+| count(*) |
++----------+
+|        1 |
+|        1 |
+|        1 |
+|        1 |
+|        1 |
++----------+
+5 rows in set (0.00 sec)
+
+
+mysql> select count(*) from sailors s
+    -> where age>18
+    -> group by rating
+    -> having count(*)>1;
+Empty set (0.02 sec)
+
+
+//11
+
+mysql> select distinct(R1.sid)
+    -> from Reserves R1, Boats B1, Reserves R2, Boats B2
+    -> where R1.sid=R2.sid AND R1.bid=B1.bid
+    ->  AND R2.bid=B2.bid AND R1.bid=R2.bid;
++-----+
+| sid |
++-----+
+|  22 |
+|  31 |
+|  32 |
++-----+
+3 rows in set (0.00 sec)
+
+
+
+//13
+
+mysql> select sid from sailors
+    -> where sid not in(select sid from reserves);
++-----+
+| sid |
++-----+
+|  29 |
+|  58 |
++-----+
+2 rows in set (0.00 sec)
+
+
+//14
+
+mysql> select s.sname from sailors s
+    -> where not exists
+    -> (select b.bid from boats b where not exists
+    -> (select r.bid from reserves r  where r.bid=b.bid AND r.sid=s.sid));
+Empty set (0.00 sec)
+
+
+//15
+
+mysql> select * from sailors
+    -> where age>(select age from sailors where sname='Dustin');
++-----+--------+--------+------+
+| sid | sname  | rating | age  |
++-----+--------+--------+------+
+|  31 | Lubber |      9 |   55 |
++-----+--------+--------+------+
+1 row in set (0.02 sec)
+
+
+
+
+
+
+
+//16
+
+mysql> select * from sailors
+    -> where rating>= all(select rating from sailors);
++-----+-------+--------+------+
+| sid | sname | rating | age  |
++-----+-------+--------+------+
+|  58 | Rusty |     10 |   35 |
++-----+-------+--------+------+
+1 row in set (0.10 sec)
+
+
+//17
+
+ select * from sailors
+    -> order by rating desc
+    -> limit 2,1;
++-----+-------+--------+------+
+| sid | sname | rating | age  |
++-----+-------+--------+------+
+|  32 | Andy  |      8 |   25 |
++-----+-------+--------+------+
+1 row in set (0.00 sec)
+
+
+//18
+
+mysql> select s.sid from sailors s,reserves r
+    -> where s.sid=r.sid and r.bid= all(select r.bid from sailors s,reserves r where s.sid=r.sid and s.sid=31);
++-----+
+| sid |
++-----+
+|  22 |
+|  31 |
++-----+
+2 rows in set (0.00 sec)
+
+
+
+//19
+
+mysql> select s.sid,s.sname,s.rating,s.age,b.bid
+    -> from sailors s,reserves r,boats b
+    -> where s.sid=r.sid and r.bid=b.bid;
++-----+--------+--------+------+-----+
+| sid | sname  | rating | age  | bid |
++-----+--------+--------+------+-----+
+|  22 | Dustin |      7 |   45 | 101 |
+|  22 | Dustin |      7 |   45 | 102 |
+|  22 | Dustin |      7 |   45 | 103 |
+|  31 | Lubber |      9 |   55 | 103 |
+|  32 | Andy   |      8 |   25 | 104 |
++-----+--------+--------+------+-----+
+5 rows in set (0.00 sec)
+
+
+
+
+
+
+
+
+
+
+
+
+
